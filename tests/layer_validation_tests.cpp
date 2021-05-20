@@ -2182,6 +2182,39 @@ void Barrier2QueueFamilyTestHelper::operator()(std::string img_err, std::string 
     context_->Reset();
 };
 
+bool InitFrameworkAndRetreiveFeatures(VkRenderFramework *renderFramework, VkPhysicalDeviceFeatures2KHR &features2,
+                                      std::vector<const char *> &instance_extension_names,
+                                      std::vector<const char *> &device_extension_names, void *userData) {
+    if (renderFramework->InstanceExtensionSupported(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+        instance_extension_names.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    } else {
+        printf("%s instance extension %s not supported, skipping test\n", kSkipPrefix,
+               VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        return false;
+    }
+    renderFramework->InitFramework(userData);
+
+    // Cycle through device extensions and check for support
+    bool retval = true;
+    for (auto extension : device_extension_names) {
+        if (!renderFramework->DeviceExtensionSupported(extension)) {
+            printf("%s Device extension %s is not supported\n", kSkipPrefix, extension);
+            retval = false;
+        }
+    }
+    PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR =
+        (PFN_vkGetPhysicalDeviceFeatures2KHR)vk::GetInstanceProcAddr(renderFramework->instance(),
+                                                                     "vkGetPhysicalDeviceFeatures2KHR");
+
+    if (vkGetPhysicalDeviceFeatures2KHR) {
+        vkGetPhysicalDeviceFeatures2KHR(renderFramework->gpu(), &features2);
+        return retval;
+    } else {
+        printf("%s Cannot use vkGetPhysicalDeviceFeatures to determine available features\n", kSkipPrefix);
+        return false;
+    }
+}
+
 bool InitFrameworkForRayTracingTest(VkRenderFramework *renderFramework, bool isKHR,
                                     std::vector<const char *> &instance_extension_names,
                                     std::vector<const char *> &device_extension_names, void *user_data, bool need_gpu_validation,

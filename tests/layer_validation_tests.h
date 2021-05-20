@@ -820,6 +820,10 @@ void CreateBufferViewTest(VkLayerTest &test, const VkBufferViewCreateInfo *pCrea
 
 void CreateImageViewTest(VkLayerTest &test, const VkImageViewCreateInfo *pCreateInfo, std::string code = "");
 
+bool InitFrameworkAndRetreiveFeatures(VkRenderFramework *renderFramework, VkPhysicalDeviceFeatures2KHR &features2,
+                                      std::vector<const char *> &instance_extension_names,
+                                      std::vector<const char *> &device_extension_names, void *userData);
+
 bool InitFrameworkForRayTracingTest(VkRenderFramework *renderFramework, bool isKHR,
                                     std::vector<const char *> &instance_extension_names,
                                     std::vector<const char *> &device_extension_names, void *user_data,
