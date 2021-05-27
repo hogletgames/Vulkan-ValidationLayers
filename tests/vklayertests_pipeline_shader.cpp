@@ -10492,7 +10492,6 @@ TEST_F(VkLayerTest, UsingProvokingVertexModeLastVertexExtWithoutEnabled) {
 TEST_F(VkLayerTest, NotSupportProvokingVertexModePerPipeline) {
     TEST_DESCRIPTION(
         "Test using different VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT but it doesn't support provokingVertexModePerPipeline.");
-    SetTargetApiVersion(VK_API_VERSION_1_1);
 
     bool inst_ext = InstanceExtensionSupported(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
     if (inst_ext) {
