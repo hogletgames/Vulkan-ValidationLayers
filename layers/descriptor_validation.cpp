@@ -24,6 +24,7 @@
 #include "core_validation_error_enums.h"
 #include "core_validation.h"
 #include "descriptor_sets.h"
+#include "layer_options.h"
 
 using DescriptorSet = cvdescriptorset::DescriptorSet;
 using DescriptorSetLayout = cvdescriptorset::DescriptorSetLayout;
@@ -935,7 +936,7 @@ bool CoreChecks::ValidateDescriptor(const DescriptorContext &context, const Desc
 
         // NOTE: Submit time validation of UPDATE_AFTER_BIND image layout is not possible with the
         // image layout tracking as currently implemented, so only record_time_validation is done
-        if (!disabled[image_layout_validation] && context.record_time_validate) {
+        if (Settings::Get().core.check_image_layout && context.record_time_validate) {
             VkImageLayout image_layout = image_descriptor.GetImageLayout();
             // Verify Image Layout
             // No "invalid layout" VUID required for this call, since the optimal_layout parameter is UNDEFINED.

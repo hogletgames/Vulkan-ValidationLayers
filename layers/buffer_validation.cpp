@@ -43,6 +43,7 @@
 #include "buffer_validation.h"
 #include "sync_utils.h"
 #include "sync_vuid_maps.h"
+#include "layer_options.h"
 
 using LayoutRange = image_layout_map::ImageSubresourceLayoutMap::RangeType;
 using LayoutEntry = image_layout_map::ImageSubresourceLayoutMap::LayoutEntry;
@@ -1554,7 +1555,7 @@ bool CoreChecks::VerifyImageLayout(const CMD_BUFFER_STATE &cb_state, const IMAGE
                                    const VkImageSubresourceRange &range, VkImageAspectFlags aspect_mask,
                                    VkImageLayout explicit_layout, VkImageLayout optimal_layout, const char *caller,
                                    const char *layout_invalid_msg_code, const char *layout_mismatch_msg_code, bool *error) const {
-    if (disabled[image_layout_validation]) return false;
+    if (!Settings::Get().core.check_image_layout) return false;
     bool skip = false;
 
     VkImageSubresourceRange normalized_isr = image_state.NormalizeSubresourceRange(range);
@@ -1604,7 +1605,7 @@ bool CoreChecks::VerifyImageLayout(const CMD_BUFFER_STATE &cb_state, const IMAGE
 bool CoreChecks::VerifyImageLayout(const CMD_BUFFER_STATE &cb_state, const IMAGE_VIEW_STATE &image_view_state,
                                    VkImageLayout explicit_layout, const char *caller, const char *layout_mismatch_msg_code,
                                    bool *error) const {
-    if (disabled[image_layout_validation]) return false;
+    if (!Settings::Get().core.check_image_layout) return false;
     assert(image_view_state.image_state);
     auto range_factory = [&image_view_state](const ImageSubresourceLayoutMap &map) {
         return image_layout_map::RangeGenerator(image_view_state.range_generator);
@@ -4805,7 +4806,7 @@ struct GlobalLayoutUpdater {
 // This validates that the initial layout specified in the command buffer for the IMAGE is the same as the global IMAGE layout
 bool CoreChecks::ValidateCmdBufImageLayouts(const Location &loc, const CMD_BUFFER_STATE &cb_state,
                                             GlobalImageLayoutMap &overlayLayoutMap) const {
-    if (disabled[image_layout_validation]) return false;
+    if (!Settings::Get().core.check_image_layout) return false;
     bool skip = false;
     // Iterate over the layout maps for each referenced image
     GlobalImageLayoutRangeMap empty_map(1);

@@ -27,20 +27,21 @@
 #include "cmd_buffer_state.h"
 #include "device_state.h"
 #include "render_pass_state.h"
+#include "layer_options.h"
 
 #include <string>
 #include <bitset>
 #include <memory>
 
 struct VendorSpecificInfo {
-    EnableFlags vendor_id;
+    Settings::BestPracticesVendor vendor_id;
     std::string name;
 };
 
-const std::map<BPVendorFlagBits, VendorSpecificInfo> kVendorInfo = {{kBPVendorArm, {vendor_specific_arm, "Arm"}},
-                                                                    {kBPVendorAMD, {vendor_specific_amd, "AMD"}},
-                                                                    {kBPVendorIMG, {vendor_specific_img, "IMG"}},
-                                                                    {kBPVendorNVIDIA, {vendor_specific_nvidia, "NVIDIA"}}};
+const std::map<BPVendorFlagBits, VendorSpecificInfo> kVendorInfo = {{kBPVendorArm, {Settings::BEST_ARM_BIT, "Arm"}},
+                                                                    {kBPVendorAMD, {Settings::BEST_AMD_BIT, "AMD"}},
+                                                                    {kBPVendorIMG, {Settings::BEST_IMG_BIT, "IMG"}},
+                                                                    {kBPVendorNVIDIA, {Settings::BEST_NV_BIT, "NVIDIA"}}};
 
 const SpecialUseVUIDs kSpecialUseInstanceVUIDs {
     kVUID_BestPractices_CreateInstance_SpecialUseExtension_CADSupport,
@@ -66,7 +67,7 @@ static constexpr std::array<VkFormat, 12> kCustomClearColorCompressedFormatsNVID
 };
 
 ReadLockGuard BestPractices::ReadLock() {
-    if (fine_grained_locking) {
+    if (Settings::Get().core.locking == Settings::FINE_GRAIN) {
         return ReadLockGuard(validation_object_mutex, std::defer_lock);
     } else {
         return ReadLockGuard(validation_object_mutex);
@@ -74,7 +75,7 @@ ReadLockGuard BestPractices::ReadLock() {
 }
 
 WriteLockGuard BestPractices::WriteLock() {
-    if (fine_grained_locking) {
+    if (Settings::Get().core.locking == Settings::FINE_GRAIN) {
         return WriteLockGuard(validation_object_mutex, std::defer_lock);
     } else {
         return WriteLockGuard(validation_object_mutex);
@@ -93,7 +94,7 @@ bp_state::CommandBuffer::CommandBuffer(BestPractices* bp, VkCommandBuffer cb, co
 
 bool BestPractices::VendorCheckEnabled(BPVendorFlags vendors) const {
     for (const auto& vendor : kVendorInfo) {
-        if (vendors & vendor.first && enabled[vendor.second.vendor_id]) {
+        if ((vendors & vendor.first) && (Settings::Get().best.vendors & vendor.second.vendor_id)) {
             return true;
         }
     }
