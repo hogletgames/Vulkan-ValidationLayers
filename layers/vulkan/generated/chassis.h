@@ -38,12 +38,11 @@
 
 #include "vulkan/vulkan.h"
 #include "utils/cast_utils.h"
-#include "vk_layer_settings_ext.h"
+#include "vulkan/layer/vk_layer_settings_ext.h"
 #include "vk_layer_config.h"
 #include "containers/custom_containers.h"
 #include "error_message/logging.h"
 #include "vk_object_types.h"
-#include "vulkan/vk_layer.h"
 #include "vk_enum_string_helper.h"
 #include "utils/vk_layer_extension_utils.h"
 #include "utils/vk_layer_utils.h"
@@ -52,6 +51,7 @@
 #include "vk_extension_helper.h"
 #include "vk_safe_struct.h"
 #include "vk_typemap_helper.h"
+#include "layer_options.h"
 
 extern std::atomic<uint64_t> global_unique_id;
 
@@ -3676,63 +3676,6 @@ public:
     std::vector<VkQueueFamilyProperties> queue_family_properties;
 };
 
-typedef enum ValidationCheckDisables {
-    VALIDATION_CHECK_DISABLE_COMMAND_BUFFER_STATE,
-    VALIDATION_CHECK_DISABLE_OBJECT_IN_USE,
-    VALIDATION_CHECK_DISABLE_QUERY_VALIDATION,
-    VALIDATION_CHECK_DISABLE_IMAGE_LAYOUT_VALIDATION,
-} ValidationCheckDisables;
-
-typedef enum ValidationCheckEnables {
-    VALIDATION_CHECK_ENABLE_VENDOR_SPECIFIC_ARM,
-    VALIDATION_CHECK_ENABLE_VENDOR_SPECIFIC_AMD,
-    VALIDATION_CHECK_ENABLE_VENDOR_SPECIFIC_IMG,
-    VALIDATION_CHECK_ENABLE_VENDOR_SPECIFIC_NVIDIA,
-    VALIDATION_CHECK_ENABLE_VENDOR_SPECIFIC_ALL,
-    VALIDATION_CHECK_ENABLE_SYNCHRONIZATION_VALIDATION_QUEUE_SUBMIT,
-} ValidationCheckEnables;
-
-typedef enum VkValidationFeatureEnable {
-    VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION,
-} VkValidationFeatureEnable;
-
-// CHECK_DISABLED and CHECK_ENABLED vectors are containers for bools that can opt in or out of specific classes of validation
-// checks. Enum values can be specified via the vk_layer_settings.txt config file or at CreateInstance time via the
-// VK_EXT_validation_features extension that can selectively disable or enable checks.
-typedef enum DisableFlags {
-    command_buffer_state,
-    object_in_use,
-    query_validation,
-    image_layout_validation,
-    object_tracking,
-    core_checks,
-    thread_safety,
-    stateless_checks,
-    handle_wrapping,
-    shader_validation,
-    shader_validation_caching,
-    // Insert new disables above this line
-    kMaxDisableFlags,
-} DisableFlags;
-
-typedef enum EnableFlags {
-    gpu_validation,
-    gpu_validation_reserve_binding_slot,
-    best_practices,
-    vendor_specific_arm,
-    vendor_specific_amd,
-    vendor_specific_img,
-    vendor_specific_nvidia,
-    debug_printf,
-    sync_validation,
-    sync_validation_queue_submit,
-    // Insert new enables above this line
-    kMaxEnableFlags,
-} EnableFlags;
-
-typedef std::array<bool, kMaxDisableFlags> CHECK_DISABLED;
-typedef std::array<bool, kMaxEnableFlags> CHECK_ENABLED;
-
 #if defined(__clang__)
 #define DECORATE_PRINTF(_fmt_argnum, _first_param_num)  __attribute__((format (printf, _fmt_argnum, _first_param_num)))
 #elif defined(__GNUC__)
@@ -3752,14 +3695,12 @@ class ValidationObject {
 
         InstanceExtensions instance_extensions;
         DeviceExtensions device_extensions = {};
-        CHECK_DISABLED disabled = {};
-        CHECK_ENABLED enabled = {};
-        bool fine_grained_locking{true};
 
         VkInstance instance = VK_NULL_HANDLE;
         VkPhysicalDevice physical_device = VK_NULL_HANDLE;
         VkDevice device = VK_NULL_HANDLE;
         LAYER_PHYS_DEV_PROPERTIES phys_dev_properties = {};
+        LayerSettings layer_settings;
 
         std::vector<ValidationObject*> object_dispatch;
         LayerObjectTypeId container_type;

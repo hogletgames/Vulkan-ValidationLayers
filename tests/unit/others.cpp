@@ -21,53 +21,36 @@
 class MessageIdFilter {
   public:
     MessageIdFilter(const char *filter_string) {
-        local_string = filter_string;
-        filter_string_value.arrayString.pCharArray = local_string.data();
-        filter_string_value.arrayString.count = local_string.size();
-
-        strncpy(filter_setting_val.name, "message_id_filter", sizeof(filter_setting_val.name));
-        filter_setting_val.type = VK_LAYER_SETTING_VALUE_TYPE_STRING_ARRAY_EXT;
-        filter_setting_val.data = filter_string_value;
-        filter_setting = {VK_STRUCTURE_TYPE_INSTANCE_LAYER_SETTINGS_EXT, nullptr, 1, &filter_setting_val};
+        data = filter_string;
+        value = {OBJECT_LAYER_NAME, "message_id_filter", VK_LAYER_SETTING_TYPE_STRING_EXT, 1, {data.c_str()}};
+        create_info = {VK_STRUCTURE_TYPE_LAYER_SETTINGS_EXT, nullptr, 1, &value};
     }
-    VkLayerSettingsEXT *pnext{&filter_setting};
+    VkLayerSettingsCreateInfoEXT *pnext{&create_info};
 
   private:
-    VkLayerSettingValueDataEXT filter_string_value{};
-    VkLayerSettingValueEXT filter_setting_val;
-    VkLayerSettingsEXT filter_setting;
-    std::string local_string;
+    std::string data;
+    VkLayerSettingEXT value;
+    VkLayerSettingsCreateInfoEXT create_info;
 };
 
 class CustomStypeList {
   public:
     CustomStypeList(const char *stype_id_string) {
         local_string = stype_id_string;
-        custom_stype_value.arrayString.pCharArray = local_string.data();
-        custom_stype_value.arrayString.count = local_string.size();
-
-        strncpy(custom_stype_setting_val.name, "custom_stype_list", sizeof(custom_stype_setting_val.name));
-        custom_stype_setting_val.type = VK_LAYER_SETTING_VALUE_TYPE_STRING_ARRAY_EXT;
-        custom_stype_setting_val.data = custom_stype_value;
-        custom_stype_setting = {VK_STRUCTURE_TYPE_INSTANCE_LAYER_SETTINGS_EXT, nullptr, 1, &custom_stype_setting_val};
+        value = {OBJECT_LAYER_NAME, "custom_stype_list", VK_LAYER_SETTING_TYPE_STRING_EXT, 1, {local_string.c_str()}};
+        create_info = {VK_STRUCTURE_TYPE_LAYER_SETTINGS_EXT, nullptr, 1, &value};
     }
 
     CustomStypeList(const std::vector<uint32_t> &stype_id_array) {
         local_vector = stype_id_array;
-        custom_stype_value.arrayInt32.pInt32Array = local_vector.data();
-        custom_stype_value.arrayInt32.count = local_vector.size();
-
-        strncpy(custom_stype_setting_val.name, "custom_stype_list", sizeof(custom_stype_setting_val.name));
-        custom_stype_setting_val.type = VK_LAYER_SETTING_VALUE_TYPE_UINT32_ARRAY_EXT;
-        custom_stype_setting_val.data = custom_stype_value;
-        custom_stype_setting = {VK_STRUCTURE_TYPE_INSTANCE_LAYER_SETTINGS_EXT, nullptr, 1, &custom_stype_setting_val};
+        value = {OBJECT_LAYER_NAME, "custom_stype_list", VK_LAYER_SETTING_TYPE_UINT32_EXT, static_cast<uint32_t>(local_vector.size()), {&local_vector[0]}};
+        create_info = {VK_STRUCTURE_TYPE_LAYER_SETTINGS_EXT, nullptr, 1, &value};
     }
-    VkLayerSettingsEXT *pnext{&custom_stype_setting};
+    VkLayerSettingsCreateInfoEXT *pnext{&create_info};
 
   private:
-    VkLayerSettingValueDataEXT custom_stype_value{};
-    VkLayerSettingValueEXT custom_stype_setting_val;
-    VkLayerSettingsEXT custom_stype_setting;
+    VkLayerSettingEXT value;
+    VkLayerSettingsCreateInfoEXT create_info;
     std::string local_string;
     std::vector<uint32_t> local_vector;
 };
@@ -75,19 +58,16 @@ class CustomStypeList {
 class DuplicateMsgLimit {
   public:
     DuplicateMsgLimit(const uint32_t limit) {
-        limit_value.value32 = limit;
-
-        strncpy(limit_setting_val.name, "duplicate_message_limit", sizeof(limit_setting_val.name));
-        limit_setting_val.type = VK_LAYER_SETTING_VALUE_TYPE_UINT32_EXT;
-        limit_setting_val.data = limit_value;
-        limit_setting = {VK_STRUCTURE_TYPE_INSTANCE_LAYER_SETTINGS_EXT, nullptr, 1, &limit_setting_val};
+        data = limit;
+        value = {OBJECT_LAYER_NAME, "duplicate_message_limit", VK_LAYER_SETTING_TYPE_UINT32_EXT, 1, {&data}};
+        create_info = {VK_STRUCTURE_TYPE_LAYER_SETTINGS_EXT, nullptr, 1, &value};
     }
-    VkLayerSettingsEXT *pnext{&limit_setting};
+    VkLayerSettingsCreateInfoEXT *pnext{&create_info};
 
   private:
-    VkLayerSettingValueDataEXT limit_value{};
-    VkLayerSettingValueEXT limit_setting_val;
-    VkLayerSettingsEXT limit_setting;
+    int data;
+    VkLayerSettingEXT value;
+    VkLayerSettingsCreateInfoEXT create_info;
 };
 
 TEST_F(VkLayerTest, VersionCheckPromotedAPIs) {

@@ -14,9 +14,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include "vulkan/layer/vk_layer_settings_ext.h"
 
 #include "../layers/vk_lunarg_device_profile_api_layer.h"
-#include "vk_layer_settings_ext.h"
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 #include <android/log.h>
@@ -42,6 +42,8 @@
 #include <unordered_set>
 #include <vector>
 #include <condition_variable>
+
+#define OBJECT_LAYER_NAME "VK_LAYER_KHRONOS_validation"
 
 using std::string;
 using std::vector;
